@@ -1,0 +1,16 @@
+customer_id,first_name,last_name,email
+f47ac10b-58cc-4372-a567-0e02b2c3d479,Alice,Johnson,alice.johnson@example.com
+5aebd9d1-8d9e-44ec-b0c3-8c6a1f8bf1ae,Bob,Smith,bob.smith@example.com
+a1e4b716-3f92-4d3a-88c0-53e1a46bd8a3,Charlie,Lee,charlie.lee@example.com
+cf2e9c47-15b8-4b8c-bd7f-8ea10d1f06e1,Diana,Nguyen,diana.nguyen@example.com
+3b8e41f4-3f76-4932-b092-9b71a64d2f6f,Ethan,Brown,ethan.brown@example.com
+9f24b5e0-c9c3-414d-8f9f-eaf1eea5b6f6,Fiona,Garcia,fiona.garcia@example.com
+bbd87c18-0ac7-45e1-956e-b6210fbcf0a1,George,Martinez,george.martinez@example.com
+ebd15372-e639-4d79-a6bc-227fc8d0a6a3,Hannah,Wilson,hannah.wilson@example.com
+a3b9ee20-9623-4b74-9e9f-4c4a3818a8d0,Ian,Davis,ian.davis@example.com
+6cd48ae3-0eb6-4a54-b4aa-3b6ed07d4b9a,Julia,Clark,julia.clark@example.com
+ad847d4e-9f3a-4a2a-b06d-3d1e98b7c56b,Kevin,Young,kevin.young@example.com
+b82e7f12-6a98-4c4e-908b-1d6e4b0c4a30,Laura,King,laura.king@example.com
+d95a2f0e-5776-4de2-a8d3-2d370e9ed013,Mona,Scott,mona.scott@example.com
+f5c23d4b-0864-49f9-9d25-50a5a9e9a6f7,Nathan,Adams,nathan.adams@example.com
+e49e38b3-5f4c-4b07-b651-cb8145f50e9a,Olivia,Baker,olivia.baker@example.com
