@@ -86,9 +86,10 @@ class OrderProcessor(IProcessor):
         self.logger.info(f"MD5: {digest}")
 
         digest_query_stm = (
-            select(column("digest"))
+            select(text("1"))
             .select_from(self.order_manifest)
             .where(column("digest") == digest)
+            .exists()
         )
 
         digest_query = QueryType(
@@ -102,7 +103,10 @@ class OrderProcessor(IProcessor):
             conn=conn
             )
 
-        if len(results) == 0:
+        if results is not None:
+            self.logger.error("Error Occurred reading from %s " % self.order_manifest)
+        
+        elif not results:
             try:
                 self.logger.info("Processing new batch...")
                 self.database_manager.execute_csv_copy(self.tmp_order, csv_file, conn)
