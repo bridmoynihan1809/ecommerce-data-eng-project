@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 from enum import Enum
+from logging import Logger
 from sqlite3 import Connection
 from typing import Any, Dict, List, Optional
 import psycopg2
 import psycopg2.extras
+from sqlalchemy import Engine, MetaData
 from sqlalchemy.dialects import postgresql
+from psycopg2.extras import DictCursor
 
 from db.database_manager_interface import IDatabaseManager
 
@@ -26,22 +29,23 @@ class QueryType:
 
 
 class PostgresManager(IDatabaseManager):
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self, engine: Engine, logger: Logger):
+        self.engine: Engine = engine
+        self.logger: Logger = logger
 
-    def drop_table(self, table_metadata, engine):
+    def drop_table(self, table_metadata: MetaData):
         """
         Drops tables referenced in the table metadata passed.
         """
         self.logger.info("Dropping tables")
-        table_metadata.drop_all(bind=engine)
+        table_metadata.drop_all(bind=self.engine)
 
-    def create_table(self, table_metadata, engine):
+    def create_table(self, table_metadata):
         """
         Creates tables referenced in the table metadata passed.
         """
         self.logger.info("Creating tables")
-        table_metadata.create_all(bind=engine)
+        table_metadata.create_all(bind=self.engine)
     
     def execute_csv_copy(self, table_name, csv_file, conn: Connection):
         """
@@ -75,7 +79,7 @@ class PostgresManager(IDatabaseManager):
         except Exception:
             self.logger.error("Compilation Error Occurred:", exc_info=True)
 
-        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curr:
+        with conn.cursor(cursor_factory=DictCursor) as curr:
             try:
                 curr.execute(raw_sql, params)
                 conn.commit()
@@ -109,17 +113,16 @@ class PostgresManager(IDatabaseManager):
 
                 if query_type.return_type.value == "scalar":
                     result = curr.fetchone()
-                    return result if result else []
 
                 elif query_type.return_type.value == "one":
                     result = curr.fetchone()
-                    return result if result else []
 
                 elif query_type.return_type.value == "all":
                     result = curr.fetchall()
-                    return result if result else []
                 else:
                     raise ValueError(f"Unknown return_type: {query_type.return_type}")
 
             except Exception:
                 self.logger.error("Error Occurred:", exc_info=True)
+
+        return result if result else []

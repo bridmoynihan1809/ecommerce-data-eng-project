@@ -2,7 +2,7 @@ import hashlib
 import os
 
 
-def get_md5(file_path):
+def get_md5(file_path: str):
     """
     Computes the MD5 hash of a file.
     """
@@ -13,7 +13,7 @@ def get_md5(file_path):
     return hash.hexdigest()
 
 
-def extract_file_name(csv_file):
+def extract_file_name(csv_file: str):
     """
     Extracts the file name without the extension from a given file path.
     """

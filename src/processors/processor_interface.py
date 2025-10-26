@@ -12,21 +12,21 @@ class IProcessor(ABC):
 
     """
     @abstractmethod
-    def set_up_tables(self, engine):
+    def set_up_tables(self):
         """
-        Sets up the necessary tables within the database using the provided engine.
+        Sets up the necessary tables within the database
         """
         pass
 
     @abstractmethod
-    def generate_manifest_fields(self, file):
+    def generate_manifest_fields(self, file: str):
         """
         Generates a set of manifest fields for a given file.
         """
         pass
 
     @abstractmethod
-    def process_file(self, file_path, conn):
+    def process_file(self, file_path: str, conn: Connection):
         """
         Processes the file at the specified path and applies necessary operations to the database connection.
         """
@@ -40,7 +40,7 @@ class IProcessor(ABC):
         pass
     
     @abstractmethod
-    def merge_tables(self, tmp_table, target_table, conn: Connection):
+    def merge_tables(self, tmp_table: str, target_table: str, conn: Connection):
         """
         Merges data from a temporary table into the main table,
         avoiding duplicate primary key values.

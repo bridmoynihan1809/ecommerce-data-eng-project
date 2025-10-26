@@ -1,4 +1,5 @@
-import logging
+from logging import Logger, basicConfig, INFO, FileHandler, StreamHandler, getLogger
+from typing import Iterator, List
 from dotenv import load_dotenv
 from daemons.daemon_factory import DaemonFactory
 from processors.processor_factory import ProcessorFactory
@@ -7,22 +8,25 @@ from db.postgres_db import PostgresDB
 from sqlalchemy import create_engine
 import os
 
+from src.daemons.daemon_interface import IDaemon
+from src.processors.processor_interface import IProcessor
+
 load_dotenv()
 
 
 def setup_logging(name: str):
-    logging.basicConfig(
-        level=logging.INFO,
+    basicConfig(
+        level=INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         handlers=[
-            logging.FileHandler("app.log"),
-            logging.StreamHandler()
+            FileHandler("app.log"),
+            StreamHandler()
         ]
     )
-    return logging.getLogger(name)
+    return getLogger(name)
 
 
-def setup_database(logger: logging.Logger):
+def configure_database(logger: Logger):
     pg_client = PostgresDB(
         dbname=os.getenv('POSTGRES_DB'),
         user=os.getenv('POSTGRES_USER'),
@@ -37,11 +41,13 @@ def setup_database(logger: logging.Logger):
         "postgresql+psycopg2://",
         creator=pg_client.get_connection
     )
-    pg_manager = PostgresManager(logger=logger)
-    return pg_client, engine, pg_manager
+    pg_manager = PostgresManager(engine=engine, logger=logger)
+    return pg_client, pg_manager
 
 
-def get_processors_and_daemons(processor_types, pg_manager, app_logger):
+def get_processors_and_daemons(processor_types: List[str],
+                               pg_manager: PostgresManager,
+                               app_logger: Logger) -> Iterator[tuple[str, IProcessor, IDaemon]]:
     processor_factory = ProcessorFactory(pg_manager, app_logger)
     # TODO make daemon params part of configuration unique to each domain
     daemon_factory = DaemonFactory('../../src/landing/orders', True, app_logger)
@@ -54,7 +60,7 @@ def get_processors_and_daemons(processor_types, pg_manager, app_logger):
 def main():
     processor_logger = setup_logging('db')
     # app_logger = setup_logging('app')
-    pg_client, engine, pg_manager = setup_database(processor_logger)
+    pg_client, pg_manager = configure_database(processor_logger)
 
     # processor_types = ["order", "customer", "product"]
 
@@ -64,7 +70,7 @@ def main():
                                                                 pg_manager,
                                                                 processor_logger):
         processor_logger.info(f"Starting daemon for {p_type}")
-        daemon.run(processor, engine, pg_client)
+        daemon.run(processor, pg_client)
 
 
 if __name__ == '__main__':

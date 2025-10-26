@@ -1,7 +1,8 @@
 import os
 from logging import Logger
 from datetime import datetime
-from sqlalchemy import column, select, text
+from typing import Any
+from sqlalchemy import MetaData, Table, column, select, text
 from sqlalchemy.dialects.postgresql import insert
 from db.postgres_manager import PostgresManager, QueryReturnType, QueryType
 from utils.utils import get_md5, extract_file_name
@@ -26,17 +27,17 @@ class OrderProcessor(IProcessor):
     """
     def __init__(self,
                  database_manager: PostgresManager,
-                 logger: Logger):
+                 logger: Logger) -> None:
 
-        self.database_manager = database_manager
-        self.logger = logger
-        self.tmp_metadata = tmp_metadata
-        self.manifest_metadata = manifest_metadata
-        self.tmp_order = tmp_order
-        self.order_manifest = order_manifest
-        self.order = order
+        self.database_manager: PostgresManager = database_manager
+        self.logger: Logger = logger
+        self.tmp_metadata: MetaData = tmp_metadata
+        self.manifest_metadata: MetaData = manifest_metadata
+        self.tmp_order: Table = tmp_order
+        self.order_manifest: Table = order_manifest
+        self.order: Table = order
 
-    def generate_manifest_fields(self, file):
+    def generate_manifest_fields(self, file: str) -> dict[str, Any]:
         """
         Generates a manifest dictionary containing metadata about a file.
 
@@ -56,19 +57,19 @@ class OrderProcessor(IProcessor):
 
         return manifest
 
-    def set_up_tables(self, engine):
+    def set_up_tables(self) -> None:
         """
         Drops and creates tables in the database.
 
         This method drops the temporary table and then creates both the temporary
-        and manifest tables using the provided sqlalchemy engine.
+        and manifest tables.
         """
         self.logger.info("Dropping and Creating tables...")
-        self.database_manager.drop_table(tmp_metadata, engine)
-        self.database_manager.create_table(tmp_metadata, engine)
-        self.database_manager.create_table(manifest_metadata, engine)
+        self.database_manager.drop_table(tmp_metadata)
+        self.database_manager.create_table(tmp_metadata)
+        self.database_manager.create_table(manifest_metadata)
 
-    def process_file(self, csv_file, conn: Connection):
+    def process_file(self, csv_file: str, conn: Connection) -> None:
         """
         Processes the orders CSV file by performing a series of actions to update the database.
 
@@ -105,7 +106,7 @@ class OrderProcessor(IProcessor):
 
         if results is not None:
             self.logger.error("Error Occurred reading from %s " % self.order_manifest)
-        
+
         elif not results:
             try:
                 self.logger.info("Processing new batch...")
@@ -119,7 +120,7 @@ class OrderProcessor(IProcessor):
         else:
             self.logger.info("Batch already processed")
 
-    def insert_to_table(self, table_name, columns: dict[str:str], conn: Connection):
+    def insert_to_table(self, table_name: str, columns: dict[str:str], conn: Connection) -> None:
         """
         Inserts a row into the specified table.
         """
@@ -137,13 +138,34 @@ class OrderProcessor(IProcessor):
             conn=conn
         )
 
-    def merge_tables(self, tmp_table, target_table, conn: Connection):
+    def merge_tables(self, tmp_table: str, target_table: str, conn: Connection) -> None:
         """
-        Merges data from a temporary table into the main table,
-        avoiding duplicate primary key values.
+        Performs an upsert operation by merging data from a temporary table into a target table.
+
+        This method reads all records from a temporary staging table and inserts them into
+        the target table. If a row with the same primary key (`order_id`) already exists
+        in the target table, the existing row is updated only if the corresponding record
+        in the temporary table has a more recent `processed_at` timestamp.
+
+        The merge operation is executed using a SQLAlchemy `INSERT ... ON CONFLICT DO UPDATE`
+        statement to ensure data consistency while avoiding duplicate primary key violations.
+
+        Args:
+            tmp_table (str): Name of the temporary table containing staged data.
+            target_table (str): Name of the destination table to merge into.
+            conn (Connection): An active SQLAlchemy database connection.
+
+        Behavior:
+            - Reads all records from `tmp_table`.
+            - Inserts new records into `target_table`.
+            - Updates existing records only when the `processed_at` timestamp
+            in the source (temporary) table is more recent.
+            - Logs intermediate queries and execution results for debugging.
+
+        Returns:
+            None
         """
         self.logger.info(f"Merging into {target_table}")
-        # TODO update to insert where processed_at on tmp is greater than target
         select_tmp_stm = select(text("*")).select_from(tmp_table)
 
         select_tmp_query = QueryType(

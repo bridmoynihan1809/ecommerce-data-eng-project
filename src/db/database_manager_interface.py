@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+from psycopg2.extensions import connection
+from src.db.postgres_manager import QueryType
 
 
 class IDatabaseManager(ABC):
@@ -16,21 +19,21 @@ class IDatabaseManager(ABC):
         pass
 
     @abstractmethod
-    def create_table(self, conn):
+    def create_table(self, conn: connection):
         """
         Create a database table entity.
         """
         pass
 
     @abstractmethod
-    def execute_read(self, query_type, conn, params):
+    def execute_read(self,  query_type: QueryType, conn: connection, params: Optional[tuple]):
         """
         Performs select operation on provided table entity.
         """
         pass
 
     @abstractmethod
-    def execute_write(self, query_type, conn, params):
+    def execute_write(self, query_type: QueryType, conn: connection, params: Optional[tuple]):
         """
         Performs select operation on provided table entity.
         """

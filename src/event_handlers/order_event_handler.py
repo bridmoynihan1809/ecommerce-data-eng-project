@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import List
+from typing import Any, List
 from watchdog.events import PatternMatchingEventHandler
 from db.database_interface import IDatabase
 from event_handlers.event_handler_interface import IEventHandler
@@ -22,7 +22,7 @@ class OrderEventHandler(IEventHandler, PatternMatchingEventHandler):
         self.logger = logger
         PatternMatchingEventHandler.__init__(self, patterns=patterns, ignore_directories=True)
 
-    def on_created(self, event):
+    def on_created(self, event: Any) -> None:
         """
         Handles the processing of new raw files.
 

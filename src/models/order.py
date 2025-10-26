@@ -1,5 +1,5 @@
 
-from sqlalchemy import UUID, BigInteger, Boolean, Column, Date, DateTime, Float, Integer, MetaData, Numeric, String, Table, Text, func
+from sqlalchemy import UUID, BigInteger, Column, DateTime, Integer, MetaData, Numeric, String, Table, Text, func
 
 
 tmp_metadata = MetaData()
