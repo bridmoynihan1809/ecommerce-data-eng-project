@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from psycopg2.extensions import connection
 
 
 class IDatabase(ABC):
@@ -14,16 +15,16 @@ class IDatabase(ABC):
         Retrieves a database connection from the connection pool.
         """
         pass
-    
+
     @abstractmethod
-    def release_connection(self, conn):
+    def release_connection(self, conn: connection):
         """
         Releases a previously acquired database connection back to the pool."
         """
         pass
 
     @abstractmethod
-    def close_pool(self, conn):
+    def close_pool(self, conn: connection):
         """
         Closes the database connection pool.
         """

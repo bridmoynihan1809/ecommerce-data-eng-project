@@ -22,3 +22,9 @@ shell:
 
 postgres-shell:
 	docker-compose exec postgres bash
+
+unit-tests:
+	pytest --disable-warnings -v
+
+test-cov:
+	pytest --cov=tests --cov-report=term src/tests/
