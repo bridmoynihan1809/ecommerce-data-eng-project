@@ -23,6 +23,12 @@ shell:
 postgres-shell:
 	docker-compose exec postgres bash
 
+run:
+	docker-compose exec core bash -c "cd /opt/src && python main.py"
+
+run-detached:
+	docker-compose exec -d core bash -c "cd /opt/src && python main.py"
+
 unit-tests:
 	pytest --disable-warnings -v
 

@@ -2,6 +2,7 @@ from logging import Logger
 from typing import Any, List
 from watchdog.events import PatternMatchingEventHandler
 from db.database_interface import IDatabase
+from db.db_context_manager import ManagedConnection
 from event_handlers.event_handler_interface import IEventHandler
 from processors.processor_interface import IProcessor
 # from processors.order import OrderProcessor
@@ -28,14 +29,11 @@ class OrderEventHandler(IEventHandler, PatternMatchingEventHandler):
 
         This method is triggered when a raw CSV file is created in the watched directory.
         It processes the file using the IProcessor, and manages database connections
-        by acquiring a connection, using it to process the file, and then releasing the connection.
+        using a context manager to ensure proper connection cleanup.
         """
         if event:
             try:
-                conn = self.db_conn.get_connection()
-                self.processor.process_file(event.src_path, conn)
+                with ManagedConnection(self.db_conn) as conn:
+                    self.processor.process_file(event.src_path, conn)
             except Exception as e:
-                self.logger.error(f"Error connecting {e}")
-            finally:
-                if self.db_conn:
-                    self.db_conn.release_connection(conn)
+                self.logger.error(f"Error processing file {event.src_path}: {e}")

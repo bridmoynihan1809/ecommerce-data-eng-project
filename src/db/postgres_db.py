@@ -4,6 +4,7 @@ from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extensions import connection
 from threading import Lock, Semaphore
 from db.database_interface import IDatabase
+from src.db.db_context_manager import ManagedConnection
 
 
 class PostgresDB(IDatabase):
@@ -62,9 +63,8 @@ class PostgresDB(IDatabase):
         self.port: int = port
         # Semaphore limits concurrent access to max_conn
         self._semaphore: Semaphore = Semaphore(max_conn)
-        self._initialized: bool = True
         self.logger: Logger = logger
-        self._pool: ThreadedConnectionPool = ThreadedConnectionPool(
+        self._pool: Optional[ThreadedConnectionPool] = ThreadedConnectionPool(
             minconn=min_conn,
             maxconn=max_conn,
             dbname=dbname,
@@ -73,6 +73,7 @@ class PostgresDB(IDatabase):
             host=host,
             port=port
         )
+        self._initialized: bool = True
 
         self.logger.info("Connection Pool initialised.")
 
@@ -91,7 +92,7 @@ class PostgresDB(IDatabase):
             raise ValueError("PostgresDB not initialized. Create an instance first.")
         return cls._instance
 
-    def get_connection(self) -> connection:
+    def get_connection(self) -> ManagedConnection:
         """
         Acquire a connection from the pool. Blocks if max concurrent connections are in use.
 
@@ -102,10 +103,15 @@ class PostgresDB(IDatabase):
             ConnectionError: If the pool is not initialized.
         """
         self.logger.info("Fetching Connection")
-        if self._pool:
-            self._semaphore.acquire()
+        if not self._pool:
+            raise ConnectionError("Pool not initialised.")
+
+        self._semaphore.acquire()
+        try:
             return self._pool.getconn()
-        raise ConnectionError("Pool not initialised.")
+        except Exception:
+            self._semaphore.release()
+            raise
 
     def release_connection(self, conn: connection) -> None:
         """
@@ -116,15 +122,24 @@ class PostgresDB(IDatabase):
         """
         self.logger.info("Releasing Connection")
         if self._pool:
-            self._semaphore.release()
-            self._pool.putconn(conn)
+            try:
+                self._pool.putconn(conn)
+            except Exception:
+                raise
+            finally:
+                self._semaphore.release()
 
     def close_pool(self) -> None:
         """
         Close all connections and mark the pool as uninitialized.
         """
         if self._pool:
-            self._pool.closeall()
-            self._pool = None
-            self.logger.info("Connection Pool closed.")
-            self._initialized = False
+            with self._lock:
+                try:
+                    self._pool.closeall()
+                    self.logger.info("Connection Pool closed.")
+                except Exception:
+                    raise
+                finally:
+                    self._pool = None
+                    self._initialized = False
