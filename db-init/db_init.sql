@@ -12,15 +12,17 @@ CREATE TABLE IF NOT EXISTS raw.order (
     processed_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS raw.products (
+CREATE TABLE IF NOT EXISTS raw.product (
     product_id UUID PRIMARY KEY,
     product_name TEXT NOT NULL,
-    category TEXT
+    category TEXT,
+    processed_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS raw.customers (
+CREATE TABLE IF NOT EXISTS raw.customer (
     customer_id UUID PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    email TEXT UNIQUE
+    email TEXT UNIQUE,
+    processed_at TIMESTAMP NOT NULL
 );

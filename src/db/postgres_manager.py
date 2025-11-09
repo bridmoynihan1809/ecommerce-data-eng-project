@@ -8,7 +8,7 @@ from sqlalchemy.dialects import postgresql
 from psycopg2.extras import DictCursor
 
 from db.database_manager_interface import IDatabaseManager
-from db.query_types import QueryResult, QueryReturnType, QueryType
+from db.query_types import QueryResult, QueryType
 
 
 class PostgresManager(IDatabaseManager):

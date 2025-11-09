@@ -5,17 +5,24 @@ from db.database_interface import IDatabase
 from db.db_context_manager import ManagedConnection
 from event_handlers.event_handler_interface import IEventHandler
 from processors.processor_interface import IProcessor
-# from processors.order import OrderProcessor
 
 
-class OrderEventHandler(IEventHandler, PatternMatchingEventHandler):
+class DataEventHandler(IEventHandler, PatternMatchingEventHandler):
     """
-    Handles events triggered by file changes for raw order files.
+    Generic event handler for file change events.
 
-    This class extends the PatternMatchingEventHandler from watchdog to specifically handle `.csv` files
-    related to order events.
-    It processes the created files by invoking the appropriate methods in the orderProcessor
-    and interacts with the PostgresDB instance to manage database connections.
+    This class extends PatternMatchingEventHandler from watchdog to handle file events
+    for any type of data entity. It processes the created files
+    by invoking the appropriate processor and manages database connections.
+
+    This replaces entity-specific event handlers (OrderEventHandler, CustomerEventHandler, etc.)
+    with a single configurable implementation.
+
+    Args:
+        processor: IProcessor instance for processing the files
+        db_conn: IDatabase instance for managing database connections
+        patterns: List of file patterns to watch
+        logger: Logger for tracking events and errors
     """
     def __init__(self, processor: IProcessor, db_conn: IDatabase, patterns: List[str], logger: Logger):
         self.processor = processor
@@ -30,6 +37,9 @@ class OrderEventHandler(IEventHandler, PatternMatchingEventHandler):
         This method is triggered when a raw CSV file is created in the watched directory.
         It processes the file using the IProcessor, and manages database connections
         using a context manager to ensure proper connection cleanup.
+
+        Args:
+            event: File system event containing the path of the created file
         """
         if event:
             try:
