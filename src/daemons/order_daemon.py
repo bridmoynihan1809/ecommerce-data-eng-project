@@ -6,7 +6,7 @@ from processors.order import OrderProcessor
 import os
 import time
 
-from src.db.postgres_db import PostgresDB
+from db.postgres_db import PostgresDB
 
 
 class OrderDaemon(IDaemon):

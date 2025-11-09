@@ -1,8 +1,6 @@
-from dataclasses import dataclass
-from enum import Enum
 from logging import Logger
 from sqlite3 import Connection
-from typing import Any, Dict, List, Optional
+from typing import Optional
 import psycopg2
 import psycopg2.extras
 from sqlalchemy import Engine, MetaData
@@ -10,22 +8,7 @@ from sqlalchemy.dialects import postgresql
 from psycopg2.extras import DictCursor
 
 from db.database_manager_interface import IDatabaseManager
-
-QueryResult = List[Dict[str, Any]]
-
-
-class QueryReturnType(Enum):
-    SCALAR = "scalar"
-    ONE = "one"
-    ALL = "all"
-    NONE = None
-
-
-@dataclass(frozen=True)
-class QueryType:
-    name: str
-    sql: str
-    return_type: QueryReturnType
+from db.query_types import QueryResult, QueryReturnType, QueryType
 
 
 class PostgresManager(IDatabaseManager):

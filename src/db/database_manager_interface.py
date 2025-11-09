@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from psycopg2.extensions import connection
-from src.db.postgres_manager import QueryType
+from db.query_types import QueryType
 
 
 class IDatabaseManager(ABC):

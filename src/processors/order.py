@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Any
 from sqlalchemy import MetaData, Table, column, select, text
 from sqlalchemy.dialects.postgresql import insert
-from db.postgres_manager import PostgresManager, QueryReturnType, QueryType
+from db.postgres_manager import PostgresManager
+from db.query_types import QueryReturnType, QueryType
 from utils.utils import get_md5, extract_file_name
 from processors.processor_interface import IProcessor
 from sqlalchemy import Connection
@@ -86,7 +87,7 @@ class OrderProcessor(IProcessor):
         digest = get_md5(csv_file)
         self.logger.info(f"MD5: {digest}")
 
-        digest_query_stm = (
+        digest_query_stm = select(
             select(text("1"))
             .select_from(self.order_manifest)
             .where(column("digest") == digest)
@@ -104,10 +105,7 @@ class OrderProcessor(IProcessor):
             conn=conn
             )
 
-        if results is not None:
-            self.logger.error("Error Occurred reading from %s " % self.order_manifest)
-
-        elif not results:
+        if not results[0]:
             try:
                 self.logger.info("Processing new batch...")
                 self.database_manager.execute_csv_copy(self.tmp_order, csv_file, conn)

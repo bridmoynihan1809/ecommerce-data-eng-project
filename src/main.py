@@ -8,8 +8,8 @@ from db.postgres_db import PostgresDB
 from sqlalchemy import create_engine
 import os
 
-from src.daemons.daemon_interface import IDaemon
-from src.processors.processor_interface import IProcessor
+from daemons.daemon_interface import IDaemon
+from processors.processor_interface import IProcessor
 
 load_dotenv()
 

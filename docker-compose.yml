@@ -23,6 +23,6 @@ services:
       retries: 10
       start_period: 10s
     environment:
-      POSTGRES_DB: postgres
+      POSTGRES_DB: platform
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

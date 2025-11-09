@@ -4,7 +4,7 @@ from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extensions import connection
 from threading import Lock, Semaphore
 from db.database_interface import IDatabase
-from src.db.db_context_manager import ManagedConnection
+from db.db_context_manager import ManagedConnection
 
 
 class PostgresDB(IDatabase):

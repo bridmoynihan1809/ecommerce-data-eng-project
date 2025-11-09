@@ -1,5 +1,5 @@
 from typing import Any
-from src.db.database_interface import IDatabase
+from db.database_interface import IDatabase
 
 
 class ManagedConnection:
